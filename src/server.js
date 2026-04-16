@@ -134,7 +134,6 @@ app.get("/api/models", async (_req, res) => {
   }
 });
 
-
 app.get("/api/models-lite", async (_req, res) => {
   try {
     const config = await loadConfig();
