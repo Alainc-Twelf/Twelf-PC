@@ -134,6 +134,21 @@ app.get("/api/models", async (_req, res) => {
   }
 });
 
+app.get("/api/models-lite", async (_req, res) => {
+  try {
+    const config = await loadConfig();
+    const modelsLite = config.models.map((model) => {
+      const withoutImage = { ...model };
+      delete withoutImage.image;
+      return withoutImage;
+    });
+    res.json(modelsLite);
+  } catch (error) {
+    console.error("GET /api/models-lite failed:", error);
+    res.status(500).json({ error: "Failed to read models" });
+  }
+});
+
 app.get("/api/models/:id", async (req, res) => {
   try {
     const config = await loadConfig();
