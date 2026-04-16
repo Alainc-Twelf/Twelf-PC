@@ -219,6 +219,35 @@ app.patch("/api/fees/:key", async (req, res) => {
   }
 });
 
+app.post("/api/fees", async (req, res) => {
+  try {
+    if (!isObject(req.body)) {
+      return res.status(400).json({ error: "Payload must be an object" });
+    }
+
+    if (typeof req.body.key !== "string" || !req.body.key.trim()) {
+      return res.status(400).json({ error: "Fee key is required" });
+    }
+
+    const key = req.body.key.trim();
+    const config = await loadConfig();
+    const existingFee = config.fees.find((fee) => fee?.key === key);
+
+    if (existingFee) {
+      return res.status(409).json({ error: "Fee key already exists" });
+    }
+
+    const fee = { ...req.body, key };
+    config.fees.push(fee);
+    await saveConfig(config);
+
+    return res.status(201).json(fee);
+  } catch (error) {
+    console.error("POST /api/fees failed:", error);
+    return res.status(500).json({ error: "Failed to create fee" });
+  }
+});
+
 app.patch("/api/global-costs/:key", async (req, res) => {
   try {
     if (!isObject(req.body)) {
@@ -249,6 +278,35 @@ app.patch("/api/global-costs/:key", async (req, res) => {
   } catch (error) {
     console.error("PATCH /api/global-costs/:key failed:", error);
     return res.status(500).json({ error: "Failed to update global cost" });
+  }
+});
+
+app.post("/api/global-costs", async (req, res) => {
+  try {
+    if (!isObject(req.body)) {
+      return res.status(400).json({ error: "Payload must be an object" });
+    }
+
+    if (typeof req.body.key !== "string" || !req.body.key.trim()) {
+      return res.status(400).json({ error: "Global cost key is required" });
+    }
+
+    const key = req.body.key.trim();
+    const config = await loadConfig();
+    const existingGlobalCost = config.globalCosts.find((cost) => cost?.key === key);
+
+    if (existingGlobalCost) {
+      return res.status(409).json({ error: "Global cost key already exists" });
+    }
+
+    const globalCost = { ...req.body, key };
+    config.globalCosts.push(globalCost);
+    await saveConfig(config);
+
+    return res.status(201).json(globalCost);
+  } catch (error) {
+    console.error("POST /api/global-costs failed:", error);
+    return res.status(500).json({ error: "Failed to create global cost" });
   }
 });
 
@@ -324,6 +382,35 @@ app.post("/api/categories/:key/options", async (req, res) => {
   } catch (error) {
     console.error("POST /api/categories/:key/options failed:", error);
     return res.status(500).json({ error: "Failed to create option" });
+  }
+});
+
+app.post("/api/models", async (req, res) => {
+  try {
+    if (!isObject(req.body)) {
+      return res.status(400).json({ error: "Payload must be an object" });
+    }
+
+    if (typeof req.body.id !== "string" || !req.body.id.trim()) {
+      return res.status(400).json({ error: "Model id is required" });
+    }
+
+    const id = req.body.id.trim();
+    const config = await loadConfig();
+    const existingModel = findModel(config, id);
+
+    if (existingModel) {
+      return res.status(409).json({ error: "Model id already exists" });
+    }
+
+    const model = { ...req.body, id };
+    config.models.push(model);
+    await saveConfig(config);
+
+    return res.status(201).json(model);
+  } catch (error) {
+    console.error("POST /api/models failed:", error);
+    return res.status(500).json({ error: "Failed to create model" });
   }
 });
 
