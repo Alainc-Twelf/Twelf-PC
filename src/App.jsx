@@ -217,7 +217,7 @@ const initialModels = [
   }),
 ];
 
-const API_BASE = "http://192.168.1.72:4318/api";
+const API_BASE = "/api";
 
 const defaultConfig = {
   categories: initialCategories,
