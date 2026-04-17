@@ -1184,21 +1184,39 @@ export default function App() {
 
                   <div style={{ padding: "1.5rem" }}>
                     {category.options.map((option, index) => (
-                      <div key={option.id} style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem", padding: "1rem 0", borderTop: index === 0 ? "none" : "1px solid #ede9fe" }}>
-                        <div>
-                          <label style={labelStyle}>Name</label>
-                          <input value={option.name} onChange={(e) => updateOption(category.id, option.id, "name", e.target.value)} style={inputStyleFull} />
-                        </div>
-                        <div>
-                          <label style={labelStyle}>Price</label>
-                          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                            <input type="number" value={option.price} onChange={(e) => updateOption(category.id, option.id, "price", e.target.value)} style={{ ...inputStyleFull, flex: 1 }} />
-                            <button onClick={() => removeOption(category.id, option.id)} style={{ border: "none", background: "none", color: "#c4b5fd", fontSize: "1.25rem", cursor: "pointer", transition: "color 150ms" }}
-                              onMouseEnter={e => e.currentTarget.style.color = "#dc2626"}
-                              onMouseLeave={e => e.currentTarget.style.color = "#c4b5fd"}
-                            >
-                              ×
-                            </button>
+                      <div key={option.id} style={{ padding: "1rem 0", borderTop: index === 0 ? "none" : "1px solid #ede9fe" }}>
+                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "1rem" }}>
+                          <div>
+                            <label style={labelStyle}>Name</label>
+                            <input value={option.name} onChange={(e) => updateOption(category.id, option.id, "name", e.target.value)} style={inputStyleFull} />
+                          </div>
+                          <div>
+                            <label style={labelStyle}>Price</label>
+                            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                              <input type="number" value={option.price} onChange={(e) => updateOption(category.id, option.id, "price", e.target.value)} style={{ ...inputStyleFull, flex: 1 }} />
+                              <button onClick={() => removeOption(category.id, option.id)} style={{ border: "none", background: "none", color: "#c4b5fd", fontSize: "1.25rem", cursor: "pointer", transition: "color 150ms" }}
+                                onMouseEnter={e => e.currentTarget.style.color = "#dc2626"}
+                                onMouseLeave={e => e.currentTarget.style.color = "#c4b5fd"}
+                              >
+                                ×
+                              </button>
+                            </div>
+                          </div>
+                          <div>
+                            <label style={labelStyle}>Score</label>
+                            <input
+                              type="number"
+                              value={option.score ?? ""}
+                              onChange={(e) =>
+                                updateOption(
+                                  category.id,
+                                  option.id,
+                                  "score",
+                                  e.target.value === "" ? undefined : Number(e.target.value)
+                                )
+                              }
+                              style={inputStyleFull}
+                            />
                           </div>
                         </div>
                       </div>
@@ -1260,7 +1278,6 @@ export default function App() {
                       <input type="number" value={model.extras} onChange={(e) => updateModelField(model.id, "extras", e.target.value)} style={inputStyleFull} />
                     </div>
                   </div>
-
                   <div style={{ marginTop: "1.5rem" }}>
                     <label style={labelStyle}>Product Image</label>
 
