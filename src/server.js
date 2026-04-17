@@ -536,6 +536,10 @@ app.patch("/api/models/:id", async (req, res) => {
   }
 });
 
+
 app.listen(PORT, HOST, () => {
   console.log(`Config API running on http://${HOST}:${PORT}`);
+}).on("error", (error) => {
+  console.error("Failed to start Config API:", error);
+  process.exit(1);
 });
