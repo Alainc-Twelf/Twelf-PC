@@ -589,6 +589,47 @@ export default function App() {
     saveConfigToServer({ nextCategories });
   };
 
+  const updateOptionScore = async (category, optionId, field, rawValue) => {
+    const nextValue = Number(rawValue);
+    if (!Number.isFinite(nextValue)) return;
+
+    try {
+      const response = await fetch(
+        `${API_BASE}/categories/${encodeURIComponent(category.key)}/options/${encodeURIComponent(optionId)}/score`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ field, value: nextValue }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Failed to update score: ${response.status}`);
+      }
+
+      const updatedOption = await response.json();
+
+      setCategories((prevCategories) => {
+        const nextCategories = prevCategories.map((currentCategory) =>
+          currentCategory.id !== category.id
+            ? currentCategory
+            : {
+                ...currentCategory,
+                options: currentCategory.options.map((option) =>
+                  option.id === optionId ? { ...option, ...updatedOption } : option
+                ),
+              }
+        );
+        setQuoteDraft((prev) => migrateQuoteDraft(prev, nextCategories));
+        return nextCategories;
+      });
+    } catch (error) {
+      console.error(error);
+      setSaveMessage("Save failed");
+      setTimeout(() => setSaveMessage(""), 2500);
+    }
+  };
+
   const addOption = (categoryId) => {
     const nextCategories = categories.map((category) =>
       category.id === categoryId
@@ -1223,6 +1264,17 @@ export default function App() {
                           </div>
                         </div>
                         {getAvailableScores(option).length > 0 && (
+                          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: "0.5rem", marginTop: "0.625rem" }}>
+                            {getAvailableScores(option).map((score) => (
+                              <div key={score.field}>
+                                <label style={labelStyle}>{formatScoreLabel(score.field)}</label>
+                                <input
+                                  type="number"
+                                  value={score.value}
+                                  onChange={(e) => updateOptionScore(category, option.id, score.field, e.target.value)}
+                                  style={inputStyleFull}
+                                />
+                              </div>
                           <div style={{ display: "flex", flexWrap: "wrap", gap: "0.375rem", marginTop: "0.625rem" }}>
                             {getAvailableScores(option).map((score) => (
                               <span key={score.field} style={{ fontSize: "0.7rem", color: "#5b21b6", backgroundColor: "#f5f3ff", border: "1px solid #ddd6fe", borderRadius: "999px", padding: "0.125rem 0.5rem" }}>

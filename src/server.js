@@ -379,6 +379,44 @@ app.patch("/api/categories/:key/options/:optionId", async (req, res) => {
   }
 });
 
+app.patch("/api/categories/:key/options/:optionId/score", async (req, res) => {
+  try {
+    if (!isObject(req.body)) {
+      return res.status(400).json({ error: "Payload must be an object" });
+    }
+
+    const { field, value } = req.body;
+
+    if (typeof field !== "string" || !OPTIONAL_SCORE_FIELDS.includes(field)) {
+      return res.status(400).json({ error: "Invalid score field" });
+    }
+
+    if (typeof value !== "number" || Number.isNaN(value)) {
+      return res.status(400).json({ error: "Score value must be a number" });
+    }
+
+    const config = await loadConfig();
+    const category = findCategory(config, req.params.key);
+
+    if (!category) {
+      return res.status(404).json({ error: "Category not found" });
+    }
+
+    const option = findOption(category, req.params.optionId);
+    if (!option) {
+      return res.status(404).json({ error: "Option not found" });
+    }
+
+    option[field] = value;
+    await saveConfig(config);
+
+    return res.json(option);
+  } catch (error) {
+    console.error("PATCH /api/categories/:key/options/:optionId/score failed:", error);
+    return res.status(500).json({ error: "Failed to update option score" });
+  }
+});
+
 app.post("/api/categories/:key/options", async (req, res) => {
   try {
     if (!isObject(req.body)) {
