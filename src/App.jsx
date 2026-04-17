@@ -3,6 +3,25 @@ import { useEffect, useMemo, useState } from "react";
 const makeId = () =>
   `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 9)}`;
 
+const SCORE_FIELDS = [
+  "speed_score",
+  "index_score",
+  "network_score",
+  "graphics_score",
+  "utility_score",
+  "look_score",
+  "airflow_score",
+  "rarity_score",
+];
+
+const formatScoreLabel = (field) => field.replaceAll("_", " ");
+
+function getAvailableScores(item) {
+  return SCORE_FIELDS
+    .filter((field) => item?.[field] !== undefined && item?.[field] !== null)
+    .map((field) => ({ field, value: item[field] }));
+}
+
 const createOption = (name, price = 0, id = makeId()) => ({ id, name, price });
 const createCategory = (key, label, options, id = makeId()) => ({
   id,
@@ -568,6 +587,47 @@ export default function App() {
     setCategories(nextCategories);
     setQuoteDraft((prev) => migrateQuoteDraft(prev, nextCategories));
     saveConfigToServer({ nextCategories });
+  };
+
+  const updateOptionScore = async (category, optionId, field, rawValue) => {
+    const nextValue = Number(rawValue);
+    if (!Number.isFinite(nextValue)) return;
+
+    try {
+      const response = await fetch(
+        `${API_BASE}/categories/${encodeURIComponent(category.key)}/options/${encodeURIComponent(optionId)}/score`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ field, value: nextValue }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Failed to update score: ${response.status}`);
+      }
+
+      const updatedOption = await response.json();
+
+      setCategories((prevCategories) => {
+        const nextCategories = prevCategories.map((currentCategory) =>
+          currentCategory.id !== category.id
+            ? currentCategory
+            : {
+                ...currentCategory,
+                options: currentCategory.options.map((option) =>
+                  option.id === optionId ? { ...option, ...updatedOption } : option
+                ),
+              }
+        );
+        setQuoteDraft((prev) => migrateQuoteDraft(prev, nextCategories));
+        return nextCategories;
+      });
+    } catch (error) {
+      console.error(error);
+      setSaveMessage("Save failed");
+      setTimeout(() => setSaveMessage(""), 2500);
+    }
   };
 
   const addOption = (categoryId) => {
@@ -1186,6 +1246,7 @@ export default function App() {
                     {category.options.map((option, index) => (
                       <div key={option.id} style={{ padding: "1rem 0", borderTop: index === 0 ? "none" : "1px solid #ede9fe" }}>
                         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "1rem" }}>
+                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
                           <div>
                             <label style={labelStyle}>Name</label>
                             <input value={option.name} onChange={(e) => updateOption(category.id, option.id, "name", e.target.value)} style={inputStyleFull} />
@@ -1219,6 +1280,26 @@ export default function App() {
                             />
                           </div>
                         </div>
+                        {getAvailableScores(option).length > 0 && (
+                          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: "0.5rem", marginTop: "0.625rem" }}>
+                            {getAvailableScores(option).map((score) => (
+                              <div key={score.field}>
+                                <label style={labelStyle}>{formatScoreLabel(score.field)}</label>
+                                <input
+                                  type="number"
+                                  value={score.value}
+                                  onChange={(e) => updateOptionScore(category, option.id, score.field, e.target.value)}
+                                  style={inputStyleFull}
+                                />
+                              </div>
+                          <div style={{ display: "flex", flexWrap: "wrap", gap: "0.375rem", marginTop: "0.625rem" }}>
+                            {getAvailableScores(option).map((score) => (
+                              <span key={score.field} style={{ fontSize: "0.7rem", color: "#5b21b6", backgroundColor: "#f5f3ff", border: "1px solid #ddd6fe", borderRadius: "999px", padding: "0.125rem 0.5rem" }}>
+                                {formatScoreLabel(score.field)}: {score.value}
+                              </span>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -1278,6 +1359,16 @@ export default function App() {
                       <input type="number" value={model.extras} onChange={(e) => updateModelField(model.id, "extras", e.target.value)} style={inputStyleFull} />
                     </div>
                   </div>
+                  {getAvailableScores(model).length > 0 && (
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: "0.375rem", marginTop: "0.875rem" }}>
+                      {getAvailableScores(model).map((score) => (
+                        <span key={score.field} style={{ fontSize: "0.7rem", color: "#5b21b6", backgroundColor: "#f5f3ff", border: "1px solid #ddd6fe", borderRadius: "999px", padding: "0.125rem 0.5rem" }}>
+                          {formatScoreLabel(score.field)}: {score.value}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+
                   <div style={{ marginTop: "1.5rem" }}>
                     <label style={labelStyle}>Product Image</label>
 

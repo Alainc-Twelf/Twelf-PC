@@ -49,6 +49,26 @@ function validateOptionalScoreField(payload) {
 
   if (typeof payload.score !== "number" || Number.isNaN(payload.score)) {
     return "score must be a number when provided";
+const OPTIONAL_SCORE_FIELDS = [
+  "speed_score",
+  "index_score",
+  "network_score",
+  "graphics_score",
+  "utility_score",
+  "look_score",
+  "airflow_score",
+  "rarity_score",
+];
+
+function validateOptionalScoreFields(payload) {
+  for (const field of OPTIONAL_SCORE_FIELDS) {
+    if (!Object.prototype.hasOwnProperty.call(payload, field)) {
+      continue;
+    }
+
+    if (typeof payload[field] !== "number" || Number.isNaN(payload[field])) {
+      return `${field} must be a number when provided`;
+    }
   }
 
   return null;
@@ -329,6 +349,7 @@ app.patch("/api/categories/:key/options/:optionId", async (req, res) => {
     }
 
     const scoreFieldError = validateOptionalScoreField(req.body);
+    const scoreFieldError = validateOptionalScoreFields(req.body);
     if (scoreFieldError) {
       return res.status(400).json({ error: scoreFieldError });
     }
@@ -366,6 +387,44 @@ app.patch("/api/categories/:key/options/:optionId", async (req, res) => {
   }
 });
 
+app.patch("/api/categories/:key/options/:optionId/score", async (req, res) => {
+  try {
+    if (!isObject(req.body)) {
+      return res.status(400).json({ error: "Payload must be an object" });
+    }
+
+    const { field, value } = req.body;
+
+    if (typeof field !== "string" || !OPTIONAL_SCORE_FIELDS.includes(field)) {
+      return res.status(400).json({ error: "Invalid score field" });
+    }
+
+    if (typeof value !== "number" || Number.isNaN(value)) {
+      return res.status(400).json({ error: "Score value must be a number" });
+    }
+
+    const config = await loadConfig();
+    const category = findCategory(config, req.params.key);
+
+    if (!category) {
+      return res.status(404).json({ error: "Category not found" });
+    }
+
+    const option = findOption(category, req.params.optionId);
+    if (!option) {
+      return res.status(404).json({ error: "Option not found" });
+    }
+
+    option[field] = value;
+    await saveConfig(config);
+
+    return res.json(option);
+  } catch (error) {
+    console.error("PATCH /api/categories/:key/options/:optionId/score failed:", error);
+    return res.status(500).json({ error: "Failed to update option score" });
+  }
+});
+
 app.post("/api/categories/:key/options", async (req, res) => {
   try {
     if (!isObject(req.body)) {
@@ -373,6 +432,7 @@ app.post("/api/categories/:key/options", async (req, res) => {
     }
 
     const scoreFieldError = validateOptionalScoreField(req.body);
+    const scoreFieldError = validateOptionalScoreFields(req.body);
     if (scoreFieldError) {
       return res.status(400).json({ error: scoreFieldError });
     }
@@ -414,6 +474,7 @@ app.post("/api/models", async (req, res) => {
     }
 
     const scoreFieldError = validateOptionalScoreField(req.body);
+    const scoreFieldError = validateOptionalScoreFields(req.body);
     if (scoreFieldError) {
       return res.status(400).json({ error: scoreFieldError });
     }
@@ -448,6 +509,7 @@ app.patch("/api/models/:id", async (req, res) => {
     }
 
     const scoreFieldError = validateOptionalScoreField(req.body);
+    const scoreFieldError = validateOptionalScoreFields(req.body);
     if (scoreFieldError) {
       return res.status(400).json({ error: scoreFieldError });
     }
