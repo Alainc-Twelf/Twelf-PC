@@ -49,6 +49,11 @@ function validateOptionalScoreField(payload) {
 
   if (typeof payload.score !== "number" || Number.isNaN(payload.score)) {
     return "score must be a number when provided";
+  }
+
+  return null;
+}
+
 const OPTIONAL_SCORE_FIELDS = [
   "speed_score",
   "index_score",
@@ -348,7 +353,6 @@ app.patch("/api/categories/:key/options/:optionId", async (req, res) => {
       return res.status(400).json({ error: "Payload must be an object" });
     }
 
-    const scoreFieldError = validateOptionalScoreField(req.body);
     const scoreFieldError = validateOptionalScoreFields(req.body);
     if (scoreFieldError) {
       return res.status(400).json({ error: scoreFieldError });
@@ -431,7 +435,6 @@ app.post("/api/categories/:key/options", async (req, res) => {
       return res.status(400).json({ error: "Payload must be an object" });
     }
 
-    const scoreFieldError = validateOptionalScoreField(req.body);
     const scoreFieldError = validateOptionalScoreFields(req.body);
     if (scoreFieldError) {
       return res.status(400).json({ error: scoreFieldError });
@@ -473,7 +476,6 @@ app.post("/api/models", async (req, res) => {
       return res.status(400).json({ error: "Payload must be an object" });
     }
 
-    const scoreFieldError = validateOptionalScoreField(req.body);
     const scoreFieldError = validateOptionalScoreFields(req.body);
     if (scoreFieldError) {
       return res.status(400).json({ error: scoreFieldError });
@@ -508,7 +510,6 @@ app.patch("/api/models/:id", async (req, res) => {
       return res.status(400).json({ error: "Payload must be an object" });
     }
 
-    const scoreFieldError = validateOptionalScoreField(req.body);
     const scoreFieldError = validateOptionalScoreFields(req.body);
     if (scoreFieldError) {
       return res.status(400).json({ error: scoreFieldError });
