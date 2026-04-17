@@ -1245,6 +1245,7 @@ export default function App() {
                   <div style={{ padding: "1.5rem" }}>
                     {category.options.map((option, index) => (
                       <div key={option.id} style={{ padding: "1rem 0", borderTop: index === 0 ? "none" : "1px solid #ede9fe" }}>
+                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "1rem" }}>
                         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
                           <div>
                             <label style={labelStyle}>Name</label>
@@ -1261,6 +1262,22 @@ export default function App() {
                                 ×
                               </button>
                             </div>
+                          </div>
+                          <div>
+                            <label style={labelStyle}>Score</label>
+                            <input
+                              type="number"
+                              value={option.score ?? ""}
+                              onChange={(e) =>
+                                updateOption(
+                                  category.id,
+                                  option.id,
+                                  "score",
+                                  e.target.value === "" ? undefined : Number(e.target.value)
+                                )
+                              }
+                              style={inputStyleFull}
+                            />
                           </div>
                         </div>
                         {getAvailableScores(option).length > 0 && (
