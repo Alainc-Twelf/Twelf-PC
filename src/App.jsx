@@ -1275,6 +1275,11 @@ export default function App() {
                                   style={inputStyleFull}
                                 />
                               </div>
+                          <div style={{ display: "flex", flexWrap: "wrap", gap: "0.375rem", marginTop: "0.625rem" }}>
+                            {getAvailableScores(option).map((score) => (
+                              <span key={score.field} style={{ fontSize: "0.7rem", color: "#5b21b6", backgroundColor: "#f5f3ff", border: "1px solid #ddd6fe", borderRadius: "999px", padding: "0.125rem 0.5rem" }}>
+                                {formatScoreLabel(score.field)}: {score.value}
+                              </span>
                             ))}
                           </div>
                         )}
