@@ -42,6 +42,31 @@ function isMutatingMethod(req) {
   return ["POST", "PUT", "PATCH", "DELETE"].includes(req.method);
 }
 
+const OPTIONAL_SCORE_FIELDS = [
+  "speed_score",
+  "index_score",
+  "network_score",
+  "graphics_score",
+  "utility_score",
+  "look_score",
+  "airflow_score",
+  "rarity_score",
+];
+
+function validateOptionalScoreFields(payload) {
+  for (const field of OPTIONAL_SCORE_FIELDS) {
+    if (!Object.prototype.hasOwnProperty.call(payload, field)) {
+      continue;
+    }
+
+    if (typeof payload[field] !== "number" || Number.isNaN(payload[field])) {
+      return `${field} must be a number when provided`;
+    }
+  }
+
+  return null;
+}
+
 // Protect write routes.
 app.use("/api", (req, res, next) => {
   if (!isMutatingMethod(req)) {
@@ -316,6 +341,11 @@ app.patch("/api/categories/:key/options/:optionId", async (req, res) => {
       return res.status(400).json({ error: "Payload must be an object" });
     }
 
+    const scoreFieldError = validateOptionalScoreFields(req.body);
+    if (scoreFieldError) {
+      return res.status(400).json({ error: scoreFieldError });
+    }
+
     const config = await loadConfig();
     const category = findCategory(config, req.params.key);
 
@@ -355,6 +385,11 @@ app.post("/api/categories/:key/options", async (req, res) => {
       return res.status(400).json({ error: "Payload must be an object" });
     }
 
+    const scoreFieldError = validateOptionalScoreFields(req.body);
+    if (scoreFieldError) {
+      return res.status(400).json({ error: scoreFieldError });
+    }
+
     const config = await loadConfig();
     const category = findCategory(config, req.params.key);
 
@@ -391,6 +426,11 @@ app.post("/api/models", async (req, res) => {
       return res.status(400).json({ error: "Payload must be an object" });
     }
 
+    const scoreFieldError = validateOptionalScoreFields(req.body);
+    if (scoreFieldError) {
+      return res.status(400).json({ error: scoreFieldError });
+    }
+
     if (typeof req.body.id !== "string" || !req.body.id.trim()) {
       return res.status(400).json({ error: "Model id is required" });
     }
@@ -418,6 +458,11 @@ app.patch("/api/models/:id", async (req, res) => {
   try {
     if (!isObject(req.body)) {
       return res.status(400).json({ error: "Payload must be an object" });
+    }
+
+    const scoreFieldError = validateOptionalScoreFields(req.body);
+    if (scoreFieldError) {
+      return res.status(400).json({ error: scoreFieldError });
     }
 
     const config = await loadConfig();
